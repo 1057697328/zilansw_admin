@@ -3,33 +3,28 @@
 		<el-row style="margin-bottom:10px;">
 			<el-col :span="24">
 				<div>
-					<el-button type="primary" icon="el-icon-plus" @click="showAddDialog=true">添加轮播</el-button>
+					<el-button type="primary" icon="el-icon-plus" @click="showAddDialog=true">添加商品类型</el-button>
 				</div>
 			</el-col>
 		</el-row>
 		<el-row>
 			<el-col :span="24">
 				<el-table :data="tableData" style="width: 100%">
-					<el-table-column prop="bid" label="轮播编号" width="180">
+					<el-table-column prop="gtypeid" label="商品类型编号"></el-table-column>
+					<el-table-column prop="gtypename" label="商品类型名称" width="180">
 					</el-table-column>
-					<el-table-column prop="imgpath" label="轮播图片" width="180">
+					<el-table-column prop="iconimgpath" label="商品类型图片" width="180">
 						<!-- 图片的显示 -->
 						<template slot-scope="scope">
-							<img :src="CONSTANT.baseURL+scope.row.imgpath" min-width="70" height="70" />
+							<img :src="CONSTANT.baseURL+scope.row.iconimgpath" min-width="70" height="70" />
 						</template>
 					</el-table-column>
-					<el-table-column prop="url" label="跳转地址">
-					</el-table-column>
-					<el-table-column prop="status" label="状态">
-						<template slot-scope="scope">
-							<span v-if="scope.row.status==0">启用</span>
-							<span v-if="scope.row.status==1">隐藏</span>
-						</template>
+					<el-table-column prop="description" label="商品类型简介">
 					</el-table-column>
 					<el-table-column fixed="right" label="操作" width="200">
 						<template slot-scope="scope">
-							<el-button size="mini" @click="selectById(scope.row.bid)">编辑</el-button>
-							<el-button size="mini" type="danger" @click="deleteBanner(scope.row.bid)">删除</el-button>
+							<el-button size="mini" @click="selectById(scope.row.gtypeid)">编辑</el-button>
+							<el-button size="mini" type="danger" @click="deleteGoodType(scope.row.gtypeid)">删除</el-button>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -43,45 +38,41 @@
 			<el-button type="primary" @click="getPage(pageinfo.pagecount)">尾页</el-button>
 		</el-row>
 
-		<el-dialog title="添加轮播" :visible.sync="showAddDialog">
+		<el-dialog title="添加商品类型" :visible.sync="showAddDialog">
 			<el-form label-width="100px">
-				<el-form-item label="轮播图片">
+				<el-form-item label="商品类型图片">
 					<input type="file" class="form-control-file" @change="changeAddImage" />
 				</el-form-item>
-				<el-form-item label="跳转内容">
-					<el-input v-model="add.url" placeholder="请输入跳转内容"></el-input>
+				<el-form-item label="商品类型名称">
+					<el-input v-model="add.gtypename" placeholder="请输入商品类型名称"></el-input>
 				</el-form-item>
-				<el-form-item label="活动区域">
-					<el-select placeholder="请选择活动区域" v-model="add.status">
-						<el-option label="显示" value="0"></el-option>
-						<el-option label="隐藏" value="1"></el-option>
-					</el-select>
+				<el-form-item label="商品类型简介">
+					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品类型简介" v-model="add.description">
+					</el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="showAddDialog = false">取 消</el-button>
-				<el-button type="primary" @click="addBanner()">确 定</el-button>
+				<el-button type="primary" @click="addGoodType()">确 定</el-button>
 			</div>
 		</el-dialog>
 
-		<el-dialog title="修改轮播" :visible.sync="showUpdateDialog">
+		<el-dialog title="修改商品类型" :visible.sync="showUpdateDialog">
 			<el-form label-width="100px">
-				<el-form-item label="轮播图片">
+				<el-form-item label="商品类型图片">
 					<input type="file" class="form-control-file" @change="changeUpdateImage" />
 				</el-form-item>
-				<el-form-item label="跳转内容">
-					<el-input v-model="update.url" placeholder="请输入跳转内容"></el-input>
+				<el-form-item label="商品类型名称">
+					<el-input v-model="update.gtypename" placeholder="请输入商品类型名称"></el-input>
 				</el-form-item>
-				<el-form-item label="活动区域">
-					<el-select placeholder="请选择活动区域" v-model="update.status">
-						<el-option label="显示" :value="0"></el-option>
-						<el-option label="隐藏" :value="1"></el-option>
-					</el-select>
+				<el-form-item label="商品类型简介">
+					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品类型简介" v-model="update.description">
+					</el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="showUpdateDialog = false">取 消</el-button>
-				<el-button type="primary" @click="updateBanner()">确 定</el-button>
+				<el-button type="primary" @click="updateGoodType()">确 定</el-button>
 			</div>
 		</el-dialog>
 	</div>
@@ -91,7 +82,7 @@
 <script>
 	import CONSTANT from '@/assets/constant'
 	export default {
-		name: "bannermanager",
+		name: "goodtypemanager",
 		data() {
 			return {
 				CONSTANT: CONSTANT,
@@ -101,16 +92,16 @@
 				option: '',
 				pageinfo: {},
 				add: {
-					url: '',
-					imgpath: '',
-					status: "",
+					gtypename: '',
+					iconimgpath: '',
+					description: "",
 					imgFile: ''
 				},
 				update: {
-					bid: 0,
-					url: '',
-					imgpath: '',
-					status: "",
+					gtypeid: 0,
+					gtypename: '',
+					iconimgpath: '',
+					description: "",
 					imgFile: ''
 				},
 				dialogImageUrl: '',
@@ -118,7 +109,7 @@
 			}
 		},
 		mounted() {
-			this.getBannerList();
+			this.getGoodTypeList();
 		},
 		methods: {
 			/**
@@ -141,8 +132,8 @@
 			/**
 			 * 加载列表
 			 */
-			getBannerList() {
-				this.axios.post("/admin/zbanner/getList", {
+			getGoodTypeList() {
+				this.axios.post("/admin/goodsType/getList", {
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded'
 						},
@@ -156,7 +147,7 @@
 			 * @param {Object} pageIndex获取分页数据
 			 */
 			getPage(pageIndex) {
-				this.axios.post("/admin/zbanner/getList?pageIndex=" + pageIndex, {
+				this.axios.post("/admin/goodsType/getList?pageIndex=" + pageIndex, {
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded'
 						},
@@ -166,8 +157,8 @@
 						this.pageinfo = json.data.pageBean;
 					})
 			},
-			selectById(bid) {
-				this.axios.post("/admin/zbanner/selectById?bid=" + bid, {
+			selectById(gtypeid) {
+				this.axios.post("/admin/goodsType/selectById?gtypeid=" + gtypeid, {
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded'
 						},
@@ -178,7 +169,7 @@
 					})
 			},
 			/**
-			 * 更改保存轮播图片框内容
+			 * 更改保存商品类型图片框内容
 			 * @param e
 			 */
 			changeAddImage(e) {
@@ -193,24 +184,24 @@
 			/**
 			 * 新增
 			 */
-			addBanner() {
+			addGoodType() {
 				let data = new FormData();
-				data.append("url", this.add.url);
 				data.append("imgFile", this.add.imgFile);
-				data.append("status", this.add.status);
+				data.append("gtypename", this.add.gtypename);
+				data.append("description", this.add.description);
 				let config = {
 					//添加请求头
 					headers: {
 						"Content-Type": "multipart/form-data"
 					},
 				};
-				this.axios.post("/admin/zbanner/add", data, config)
+				this.axios.post("/admin/goodsType/add", data, config)
 					.then((json) => {
 						if (json.data.code === CONSTANT.statusCode.SUCCESS) {
 							this.showAddDialog = false;
 							this.msg = json.data.msg;
 							this.open2();
-							this.getBannerList();
+							this.getGoodTypeList();
 
 						} else {
 							CONSTANT.MESSAGEBOX(json.data.message, "success", () => {
@@ -220,13 +211,13 @@
 					})
 			},
 			/**
-			 * 删除轮播
-			 * @param bid
+			 * 删除商品类型
+			 * @param gtypeid
 			 */
-			deleteBanner(bid) {
-				let flag = confirm("您确定要删除编号为[" + bid + "]的轮播信息吗?");
+			deleteGoodType(gtypeid) {
+				let flag = confirm("您确定要删除编号为[" + gtypeid + "]的商品类型信息吗?");
 				if (flag) {
-					this.axios.get("/admin/zbanner/delete?bid=" + bid)
+					this.axios.get("/admin/goodsType/delete?gtypeid=" + gtypeid)
 						.then((json) => {
 							console.log(json)
 							if (json.data.code == "200") {
@@ -234,37 +225,37 @@
 								//消息提示
 								this.open2();
 								//加载列表
-								this.getBannerList();
+								this.getGoodTypeList();
 							} else {}
 						})
 				}
 			},
 			/**
-			 * 修改轮播
+			 * 修改商品类型
 			 */
-			updateBanner() {
+			updateGoodType() {
 				let data = new FormData();
-				data.append("bid", this.update.bid);
-				data.append("url", this.update.url);
-				if (this.update.imgpath) {
-					data.append("imgpath", this.update.imgpath);
+				data.append("gtypeid", this.update.gtypeid);
+				if (this.update.iconimgpath) {
+					data.append("iconimgpath", this.update.iconimgpath);
 				}
 				data.append("imgFile", this.update.imgFile);
-				data.append("status", this.update.status);
+				data.append("gtypename", this.update.gtypename);
+				data.append("description", this.update.description);
 				let config = {
 					//添加请求头
 					headers: {
 						"Content-Type": "multipart/form-data"
 					},
 				};
-				this.axios.post("/admin/zbanner/update", data, config)
+				this.axios.post("/admin/goodsType/update", data, config)
 					.then((json) => {
 						if (json.data.code === CONSTANT.statusCode.SUCCESS) {
 							this.update = {}
 							this.msg = json.data.msg;
 							this.showUpdateDialog = false;
 							this.open2();
-							this.getBannerList();
+							this.getGoodTypeList();
 						} else {
 							CONSTANT.MESSAGEBOX(json.data.message, "success", () => {
 								jQuery('#updateModal').modal('hide');

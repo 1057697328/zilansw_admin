@@ -14,8 +14,9 @@ Vue.config.productionTip = false;
 
 Vue.use(ElementUI);
 
-Vue.use(axios);
-Vue.use(VueAxios);
+axios.defaults.baseURL="http://127.0.0.1:8090";
+
+Vue.use(VueAxios,axios);
 
 /* eslint-disable no-new */
 new Vue({
