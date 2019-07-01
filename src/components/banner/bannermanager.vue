@@ -51,8 +51,8 @@
 				<el-form-item label="跳转内容">
 					<el-input v-model="add.url" placeholder="请输入跳转内容"></el-input>
 				</el-form-item>
-				<el-form-item label="活动区域">
-					<el-select placeholder="请选择活动区域" v-model="add.status">
+				<el-form-item label="轮播图状态">
+					<el-select placeholder="请选择轮播图状态" v-model="add.status">
 						<el-option label="显示" value="0"></el-option>
 						<el-option label="隐藏" value="1"></el-option>
 					</el-select>
@@ -72,8 +72,8 @@
 				<el-form-item label="跳转内容">
 					<el-input v-model="update.url" placeholder="请输入跳转内容"></el-input>
 				</el-form-item>
-				<el-form-item label="活动区域">
-					<el-select placeholder="请选择活动区域" v-model="update.status">
+				<el-form-item label="轮播图状态">
+					<el-select placeholder="请选择轮播图状态" v-model="update.status">
 						<el-option label="显示" :value="0"></el-option>
 						<el-option label="隐藏" :value="1"></el-option>
 					</el-select>
