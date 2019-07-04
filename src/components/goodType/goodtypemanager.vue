@@ -3,7 +3,7 @@
 		<el-row style="margin-bottom:10px;">
 			<el-col :span="24">
 				<div>
-					<el-button type="primary" icon="el-icon-plus" @click="showAddDialog=true">添加商品类型</el-button>
+					<el-button type="primary" icon="el-icon-plus" @click="OpenAddModel()">添加商品类型</el-button>
 				</div>
 			</el-col>
 		</el-row>
@@ -23,7 +23,7 @@
 					</el-table-column>
 					<el-table-column fixed="right" label="操作" width="200">
 						<template slot-scope="scope">
-							<el-button size="mini" @click="selectById(scope.row.gtypeid)">编辑</el-button>
+							<el-button size="mini" @click="getData(scope.row)">编辑</el-button>
 							<el-button size="mini" type="danger" @click="deleteGoodType(scope.row.gtypeid)">删除</el-button>
 						</template>
 					</el-table-column>
@@ -50,6 +50,18 @@
 					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品类型简介" v-model="add.description">
 					</el-input>
 				</el-form-item>
+
+				<el-form-item label="是否是父类">
+					<template>
+						<el-radio v-model="radio" :label="true" border>否</el-radio>
+						<el-radio v-model="radio" :label="false" border>是</el-radio>
+					</template>
+				</el-form-item>
+
+				<el-form-item label="商品父类" v-show="radio">
+					<el-cascader :options="options" :value="options.value" v-model="add.parentid" clearable></el-cascader>
+				</el-form-item>
+
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="showAddDialog = false">取 消</el-button>
@@ -68,6 +80,9 @@
 				<el-form-item label="商品类型简介">
 					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品类型简介" v-model="update.description">
 					</el-input>
+				</el-form-item>
+				<el-form-item label="商品父类">
+					<el-cascader :options="options" :value="update.parentid" v-model="update.parentid" clearable></el-cascader>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -91,44 +106,31 @@
 				showUpdateDialog: false,
 				option: '',
 				pageinfo: {},
+				options: {},
 				add: {
 					gtypename: '',
 					iconimgpath: '',
 					description: "",
-					imgFile: ''
+					imgFile: '',
+					parentid: ''
 				},
 				update: {
 					gtypeid: 0,
 					gtypename: '',
 					iconimgpath: '',
 					description: "",
-					imgFile: ''
+					imgFile: '',
+					parentid: ''
 				},
 				dialogImageUrl: '',
-				msg: ""
+				msg: "",
+				radio: false,
 			}
 		},
 		mounted() {
 			this.getGoodTypeList();
 		},
 		methods: {
-			/**
-			 * 表格编辑按钮
-			 * @param index
-			 * @param row
-			 */
-			handleEdit(index, row) {
-				this.showUpdateDialog = true;
-			},
-			/**
-			 * 表格删除按钮
-			 * @param index
-			 * @param row
-			 */
-			handleDelete(index, row) {
-				console.info(index);
-				console.info(row);
-			},
 			/**
 			 * 加载列表
 			 */
@@ -157,16 +159,11 @@
 						this.pageinfo = json.data.pageBean;
 					})
 			},
-			selectById(gtypeid) {
-				this.axios.post("/admin/goodsType/selectById?gtypeid=" + gtypeid, {
-						headers: {
-							'Content-Type': 'application/x-www-form-urlencoded'
-						},
-					})
-					.then((json) => {
-						this.update = json.data.data;
-						this.showUpdateDialog = true;
-					})
+			getData(obj) {
+				this.update = obj;
+				this.selectByParentId();
+				this.showUpdateDialog = true;
+				
 			},
 			/**
 			 * 更改保存商品类型图片框内容
@@ -189,6 +186,11 @@
 				data.append("imgFile", this.add.imgFile);
 				data.append("gtypename", this.add.gtypename);
 				data.append("description", this.add.description);
+				if (this.radio == false) {
+					data.append("parentid", 0);
+				} else {
+					data.append("parentid", this.add.parentid);
+				}
 				let config = {
 					//添加请求头
 					headers: {
@@ -271,6 +273,21 @@
 					message: this.msg,
 					type: 'success'
 				});
+			},selectByParentId(){
+				this.axios.post("/admin/goodsType/selectByParentId", {
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded'
+						},
+					})
+					.then((json) => {
+						this.options = json.data.data;
+						
+					})
+			},
+			OpenAddModel() {
+				this.selectByParentId();
+				this.showAddDialog = true;
+				
 			},
 		}
 	}

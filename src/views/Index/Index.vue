@@ -27,7 +27,7 @@
 								<el-menu-item index="4-1" @click="chooseComponent('messagemanager')"><i class=el-icon-folder-opened></i>商城公告管理</el-menu-item>
 								<el-menu-item index="4-2"><i class="el-icon-user"></i>用户管理</el-menu-item>
 								<el-menu-item index="4-3" @click="chooseComponent('evaluationmanager')"><i class="el-icon-star-off"></i>商品评价管理</el-menu-item>
-								<el-menu-item index="4-2"><i class="el-icon-user"></i>管理员管理</el-menu-item>
+								<el-menu-item index="4-4" @click="chooseComponent('adminmanager')"><i class="el-icon-user"></i>管理员管理</el-menu-item>
 							</el-menu-item-group>
 						</el-submenu>
 					</el-menu>
@@ -39,7 +39,7 @@
 					<stockmanager v-if="componentName==='stockmanager'"></stockmanager>
 					<messagemanager v-if="componentName==='messagemanager'"></messagemanager>
 					<evaluationmanager v-if="componentName==='evaluationmanager'"></evaluationmanager>
-
+					<adminmanager v-if="componentName==='adminmanager'"></adminmanager>
 
 				</el-main>
 			</el-container>
@@ -77,10 +77,18 @@
 	 */
 	import MessageManager from '@/components/message/messagemanager'
 	import Messagemanager from "../../components/message/messagemanager";
-	
+
+	/**
+	 * 评论管理
+	 */
 	import EvaluationManager from '@/components/evaluation/evaluationmanager'
 	import Evaluationmanager from "../../components/evaluation/evaluationmanager";
-	
+
+	/**
+	 * 管理员管理
+	 */
+	import AdminManager from '@/components/admin/adminmanager'
+	import Adminmanager from "../../components/admin/adminmanager";
 	export default {
 		name: "Index",
 		components: {
@@ -90,6 +98,7 @@
 			Stockmanager,
 			Messagemanager,
 			Evaluationmanager,
+			Adminmanager,
 		},
 		data() {
 			return {
