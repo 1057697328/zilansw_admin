@@ -53,13 +53,16 @@
 
 		<el-dialog title="添加商品类型" :visible.sync="showAddDialog">
 			<el-form label-width="100px">
+				<el-form-item label="商品图片">
+					<input type="file" class="form-control-file" multiple="multiple" @change="changeAddImage" />
+				</el-form-item>
 				<el-form-item label="商品名称">
 					<el-input v-model="add.gname" placeholder="请输入商品名称"></el-input>
 				</el-form-item>
 
 				<el-form-item label="商品类型名称">
 					<el-select placeholder="请选择轮商品类型名称" v-model="add.gtypeid">
-						<el-option :value="items.gtypeid" v-for="items in goodType" :key="items.gtypeid">
+						<el-option :value="items.gtypeid" :label="items.gtypename" v-for="items in goodType" :key="items.gtypeid">
 							{{items.gtypename}}
 						</el-option>
 					</el-select>
@@ -69,7 +72,7 @@
 				</el-form-item>
 
 				<el-form-item label="商品详情">
-					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品详情" v-model="add.status">
+					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品详情" v-model="add.gdetail">
 					</el-input>
 				</el-form-item>
 				<el-form-item label="商品状态">
@@ -87,10 +90,13 @@
 
 		<el-dialog title="修改商品类型" :visible.sync="showUpdateDialog">
 			<el-form label-width="100px">
+				<el-form-item label="商品图片">
+					<input type="file" class="form-control-file" multiple="multiple" @change="changeUpdateImage" />
+				</el-form-item>
 				<el-form-item label="商品名称">
 					<el-input v-model="update.gname" placeholder="请输入商品名称"></el-input>
 				</el-form-item>
-			
+
 				<el-form-item label="商品类型名称">
 					<el-select placeholder="请选择轮商品类型名称" v-model="update.gtypeid">
 						<el-option :value="items.gtypeid" :label="items.gtypename" v-for="items in goodType" :key="items.gtypeid">
@@ -101,7 +107,7 @@
 				<el-form-item label="价格">
 					<el-input v-model="update.price" placeholder="请输入商品价格"></el-input>
 				</el-form-item>
-			
+
 				<el-form-item label="商品详情">
 					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品详情" v-model="update.gdetail">
 					</el-input>
@@ -143,6 +149,7 @@
 					price: "",
 					createTime: "",
 					status: "",
+					imgFile: '',
 				},
 				update: {
 					gid: 0,
@@ -152,8 +159,8 @@
 					price: "",
 					createTime: "",
 					status: "",
+					imgFile: '',
 				},
-				dialogImageUrl: '',
 				msg: ""
 			}
 		},
@@ -234,13 +241,14 @@
 			 * @param e
 			 */
 			changeAddImage(e) {
-				this.add.imgFile = e.target.files[0]
+				console.log(e.target.files)
+				this.add.imgFile = e.target.files
 			},
 			/**
 			 * 修改模态框更换图片
 			 */
 			changeUpdateImage(e) {
-				this.update.imgFile = e.target.files[0]
+				this.update.imgFile = e.target.files
 			},
 			/**
 			 * 新增
@@ -252,13 +260,24 @@
 				data.append("gdetail", this.add.gdetail);
 				data.append("price", this.add.price);
 				data.append("status", this.add.status);
-				this.axios.post("/admin/zGoods/add", data)
+				// data.append("files", this.add.imgFile);
+				for (let i = 0; i < this.add.imgFile.length; i++) {
+					data.append('imgFile', this.add.imgFile[i])
+				 }
+				let config = {
+					//添加请求头
+					headers: {
+						'Content-Type': 'multipart/form-data'
+					},
+				};
+				this.axios.post("/admin/zGoods/add", data, config)
 					.then((json) => {
 						if (json.data.code === CONSTANT.statusCode.SUCCESS) {
 							this.showAddDialog = false;
 							this.msg = json.data.msg;
 							this.open2();
 							this.getGoodList();
+							this.add = {};
 						} else {
 							CONSTANT.MESSAGEBOX(json.data.message, "success", () => {
 								this.showAddDialog = false;
@@ -297,7 +316,16 @@
 				data.append("gdetail", this.update.gdetail);
 				data.append("price", this.update.price);
 				data.append("status", this.update.status);
-				this.axios.post("/admin/zGoods/update", data)
+				for (let i = 0; i < this.add.imgFile.length; i++) {
+					data.append('imgFile', this.add.imgFile[i])
+				 }
+				let config = {
+					//添加请求头
+					headers: {
+						"Content-Type": "multipart/form-data"
+					},
+				};
+				this.axios.post("/admin/zGoods/update", data, config)
 					.then((json) => {
 						if (json.data.code === CONSTANT.statusCode.SUCCESS) {
 							this.update = {}
