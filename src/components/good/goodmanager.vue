@@ -3,7 +3,7 @@
 		<el-row style="margin-bottom:10px;">
 			<el-col :span="24">
 				<div>
-					<el-button type="primary" icon="el-icon-plus" @click="OpenAddModel()">添加商品类型</el-button>
+					<el-button type="primary" icon="el-icon-plus" @click="OpenAddModel()">添加商品</el-button>
 				</div>
 			</el-col>
 		</el-row>
@@ -16,8 +16,8 @@
 					</el-table-column>
 					<el-table-column prop="gname" label="商品名称">
 					</el-table-column>
-					<el-table-column prop="gdetail" label="商品详情">
-					</el-table-column>
+					<!-- <el-table-column prop="gdetail" label="商品详情">
+					</el-table-column> -->
 					<el-table-column prop="price" label="价格">
 					</el-table-column>
 					<el-table-column prop="createTime" label="创建时间">
@@ -71,15 +71,20 @@
 					<el-input v-model="add.price" placeholder="请输入商品价格" @keyup.enter="handleClick"></el-input>
 				</el-form-item>
 
-				<el-form-item label="商品详情">
-					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品详情" v-model="add.gdetail">
-					</el-input>
-				</el-form-item>
 				<el-form-item label="商品状态">
 					<el-select placeholder="请选择轮商品状态" v-model="add.status">
 						<el-option label="上架" value="0"></el-option>
 						<el-option label="下架" value="1"></el-option>
 					</el-select>
+				</el-form-item>
+
+				<el-form-item label="商品详情">
+					<div class="edit_container">
+						<quill-editor v-model="add.gdetail" ref="addeditor" class="editer" :options="editorOption" @ready="onEditorReady($event)">
+						</quill-editor>
+					</div>
+					<!-- <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品详情" v-model="add.gdetail">
+					</el-input> -->
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -107,16 +112,19 @@
 				<el-form-item label="价格">
 					<el-input v-model="update.price" placeholder="请输入商品价格"></el-input>
 				</el-form-item>
-
-				<el-form-item label="商品详情">
-					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品详情" v-model="update.gdetail">
-					</el-input>
-				</el-form-item>
 				<el-form-item label="商品状态">
 					<el-select placeholder="请选择轮商品状态" v-model="update.status">
 						<el-option label="上架" :value="0"></el-option>
 						<el-option label="下架" :value="1"></el-option>
 					</el-select>
+				</el-form-item>
+				<el-form-item label="商品详情">
+					<div class="edit_container">
+						<quill-editor v-model="update.gdetail" ref="addeditor" class="editer" :options="editorOption" @ready="onEditorReady($event)">
+						</quill-editor>
+					</div>
+					<!-- <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品详情" v-model="add.gdetail">
+					</el-input> -->
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -130,6 +138,13 @@
 
 <script>
 	import CONSTANT from '@/assets/constant'
+	import {
+		quillEditor
+	} from "vue-quill-editor"; //调用编辑器
+
+	import 'quill/dist/quill.core.css'
+	import 'quill/dist/quill.snow.css'
+	import 'quill/dist/quill.bubble.css'
 	export default {
 		name: "goodmanager",
 		data() {
@@ -161,30 +176,30 @@
 					status: "",
 					imgFile: '',
 				},
+				editorOption: {},
 				msg: ""
+			}
+		},
+		components: { //使用编辑器
+			quillEditor
+		},
+		watch: {
+			isClear(val) {
+				// 触发清除文本域内容
+				if (val) {
+					this.editor.txt.clear()
+				}
+			},
+			value(val) {
+				// 使用 v-model 时，设置初始值
+				this.editor.txt.html(val)
 			}
 		},
 		mounted() {
 			this.getGoodList();
 		},
 		methods: {
-			/**
-			 * 表格编辑按钮
-			 * @param index
-			 * @param row
-			 */
-			handleEdit(index, row) {
-				this.showUpdateDialog = true;
-			},
-			/**
-			 * 表格删除按钮
-			 * @param index
-			 * @param row
-			 */
-			handleDelete(index, row) {
-				console.info(index);
-				console.info(row);
-			},
+			onEditorReady(editor) {},
 			/**
 			 * 加载列表
 			 */
@@ -261,9 +276,10 @@
 				data.append("price", this.add.price);
 				data.append("status", this.add.status);
 				// data.append("files", this.add.imgFile);
+
 				for (let i = 0; i < this.add.imgFile.length; i++) {
 					data.append('imgFile', this.add.imgFile[i])
-				 }
+				}
 				let config = {
 					//添加请求头
 					headers: {
@@ -316,9 +332,11 @@
 				data.append("gdetail", this.update.gdetail);
 				data.append("price", this.update.price);
 				data.append("status", this.update.status);
-				for (let i = 0; i < this.add.imgFile.length; i++) {
-					data.append('imgFile', this.add.imgFile[i])
-				 }
+				if (this.update.imgFile != null && this.update.imgFile != '') {
+					for (let i = 0; i < this.update.imgFile.length; i++) {
+						data.append('imgFile', this.update.imgFile[i])
+					}
+				}
 				let config = {
 					//添加请求头
 					headers: {
