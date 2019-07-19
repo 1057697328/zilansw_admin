@@ -61,7 +61,7 @@
 				</el-form-item>
 
 				<el-form-item label="商品类型名称">
-					<el-select placeholder="请选择轮商品类型名称" v-model="add.gtypeid">
+					<el-select placeholder="请选择商品类型名称" v-model="add.gtypeid">
 						<el-option :value="items.gtypeid" :label="items.gtypename" v-for="items in goodType" :key="items.gtypeid">
 							{{items.gtypename}}
 						</el-option>

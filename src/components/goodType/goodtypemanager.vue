@@ -51,17 +51,33 @@
 					</el-input>
 				</el-form-item>
 
-				<el-form-item label="是否是父类">
+				<el-form-item label="是否是一级菜单">
 					<template>
 						<el-radio v-model="radio" :label="true" border>否</el-radio>
 						<el-radio v-model="radio" :label="false" border>是</el-radio>
 					</template>
 				</el-form-item>
 
-				<el-form-item label="商品父类" v-show="radio">
-					<el-cascader :options="options" :value="options.value" v-model="add.parentid" clearable></el-cascader>
+				<el-form-item label="商品一级菜单" v-show="radio">
+					<el-select placeholder="请选择商品一级菜单类型名称" v-model="add.onelevel" @change="onChangeByParentId(add.onelevel)">
+						<el-option :value="items.gtypeid" :label="items.gtypename" v-for="items in options" :key="items.gtypeid">
+							{{items.gtypename}}
+						</el-option>
+					</el-select>
 				</el-form-item>
-
+				<el-form-item label="是否是二级菜单">
+					<template>
+						<el-radio v-model="towradio" :label="true" border>否</el-radio>
+						<el-radio v-model="towradio" :label="false" border>是</el-radio>
+					</template>
+				</el-form-item>
+				<el-form-item label="二级菜单" v-show="towradio">
+					<el-select placeholder="请选择商品类型名称" v-model="add.parentid">
+						<el-option :value="items.gtypeid" :label="items.gtypename" v-for="items in twoLevel" :key="items.gtypeid">
+							{{items.gtypename}}
+						</el-option>
+					</el-select>
+				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="showAddDialog = false">取 消</el-button>
@@ -81,8 +97,19 @@
 					<el-input type="textarea" :autosize="{ minRows: 2, maxRows: 4}" placeholder="商品类型简介" v-model="update.description">
 					</el-input>
 				</el-form-item>
-				<el-form-item label="商品父类">
-					<el-cascader :options="options" :value="update.parentid" v-model="update.parentid" clearable></el-cascader>
+				<el-form-item label="商品父类" v-if="jsontwo!=undefined" v-i>
+					<el-select placeholder="请选择商品类型名称" v-model="towlevel" @change="updateChangeByParentId(towlevel)">
+						<el-option :value="items.gtypeid" :label="items.gtypename" v-for="items in oneList" :key="items.gtypeid">
+							{{items.gtypename}}
+						</el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="二级菜单" v-if="jsonthree!=undefined">
+					<el-select placeholder="请选择商品类型名称" v-model="threelevel" @change="change()">
+						<el-option :value="items.gtypeid" :label="items.gtypename" v-for="items in towList" :key="items.gtypeid">
+							{{items.gtypename}}
+						</el-option>
+					</el-select>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -106,13 +133,22 @@
 				showUpdateDialog: false,
 				option: '',
 				pageinfo: {},
-				options: {},
+				options: [],
+				jsonone: [],
+				jsontwo: [],
+				jsonthree: [],
+				twoLevel: [],
+				oneList: [],
+				towList: [],
+				threeList: [],
 				add: {
 					gtypename: '',
 					iconimgpath: '',
 					description: "",
 					imgFile: '',
-					parentid: ''
+					parentid: '',
+					onelevel: "",
+					towlevel: ""
 				},
 				update: {
 					gtypeid: 0,
@@ -120,11 +156,15 @@
 					iconimgpath: '',
 					description: "",
 					imgFile: '',
-					parentid: ''
+					parentid: '',
 				},
 				dialogImageUrl: '',
 				msg: "",
 				radio: false,
+				towradio: false,
+				onelevel: "",
+				towlevel: "",
+				threelevel: "",
 			}
 		},
 		mounted() {
@@ -159,11 +199,49 @@
 						this.pageinfo = json.data.pageBean;
 					})
 			},
+			/**
+			 * @param {Object} pageIndex获取分页数据
+			 */
+			selectType() {
+				this.axios.post("/admin/goodsType/selectType", {
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded'
+						},
+					})
+					.then((json) => {
+						this.oneList = json.data.oneList;
+						this.towList = json.data.towList;
+						this.threeList = json.data.threeList;
+						this.$forceUpdate();
+					})
+					
+			},
+			getGoodTypeById(gtypeid) {
+				this.axios.post("/admin/goodsType/getById?gtypeid=" + gtypeid, {
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded'
+						},
+					})
+					.then((json) => {
+						this.jsontwo = json.data.two
+						if (this.jsontwo != undefined) {
+							this.towlevel = this.jsontwo.gtypeid;
+						}
+						this.jsonthree = json.data.three
+						if (this.jsonthree != undefined) {
+							this.threelevel = this.jsonthree.gtypeid;
+						}
+						this.update = json.data.data;
+						this.$forceUpdate();
+					})
+					
+			},
 			getData(obj) {
-				this.update = obj;
-				this.selectByParentId();
+				this.selectType();
+				this.getGoodTypeById(obj.gtypeid);
+				this.$forceUpdate();
 				this.showUpdateDialog = true;
-				
+
 			},
 			/**
 			 * 更改保存商品类型图片框内容
@@ -189,8 +267,14 @@
 				if (this.radio == false) {
 					data.append("parentid", 0);
 				} else {
-					data.append("parentid", this.add.parentid);
+					if (this.towradio == false) {
+						data.append("parentid", this.add.onelevel);
+					} else {
+						data.append("parentid", this.add.parentid);
+					}
+
 				}
+
 				let config = {
 					//添加请求头
 					headers: {
@@ -244,6 +328,15 @@
 				data.append("imgFile", this.update.imgFile);
 				data.append("gtypename", this.update.gtypename);
 				data.append("description", this.update.description);
+				if (this.jsonthree != undefined) {
+					data.append("parentid", this.threelevel);
+				}
+				if (this.jsontwo != 0 || this.jsonthree == undefined) {
+					data.append("parentid", this.towlevel);
+				}
+				if (this.jsontwo == 0 || this.jsonthree == undefined) {
+					data.append("parentid", 0);
+				}
 				let config = {
 					//添加请求头
 					headers: {
@@ -273,7 +366,8 @@
 					message: this.msg,
 					type: 'success'
 				});
-			},selectByParentId(){
+			},
+			selectByParentId() {
 				this.axios.post("/admin/goodsType/selectByParentId", {
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded'
@@ -281,13 +375,36 @@
 					})
 					.then((json) => {
 						this.options = json.data.data;
-						
+						console.log(this.options)
 					})
+			},
+			onChangeByParentId(pid) {
+				this.axios.post("/admin/goodsType/selectByParentId?parentid=" + pid, {
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded'
+						},
+					})
+					.then((json) => {
+						this.twoLevel = json.data.data;
+					})
+			},
+			updateChangeByParentId(pid) {
+				this.axios.post("/admin/goodsType/selectByParentId?parentid=" + pid, {
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded'
+						},
+					})
+					.then((json) => {
+						this.towList = json.data.data;
+						this.$forceUpdate();
+					})
+			},
+			change() {
+				this.$forceUpdate();
 			},
 			OpenAddModel() {
 				this.selectByParentId();
 				this.showAddDialog = true;
-				
 			},
 		}
 	}
