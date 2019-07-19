@@ -21,7 +21,7 @@
 								<el-menu-item index="1-4" @click="chooseComponent('stockmanager')"><i class=el-icon-notebook-1></i>库存管理</el-menu-item>
 							</el-menu-item-group>
 							<el-menu-item-group title="订单">
-								<el-menu-item index="3-1"><i class=el-icon-tickets></i>订单管理</el-menu-item>
+								<el-menu-item index="3-1" @click="chooseComponent('ordermanager')"><i class=el-icon-tickets></i>订单管理</el-menu-item>
 							</el-menu-item-group>
 							<el-menu-item-group title="其它">
 								<el-menu-item index="4-1" @click="chooseComponent('messagemanager')"><i class=el-icon-folder-opened></i>商城公告管理</el-menu-item>
@@ -39,7 +39,8 @@
 					<stockmanager v-if="componentName==='stockmanager'"></stockmanager>
 					<messagemanager v-if="componentName==='messagemanager'"></messagemanager>
 					<evaluationmanager v-if="componentName==='evaluationmanager'"></evaluationmanager>
-					<adminmanager v-if="componentName==='adminmanager'"></adminmanager>
+					<Adminmanager v-if="componentName==='adminmanager'"></Adminmanager>
+          <ordermanager v-if="componentName==='ordermanager'"></ordermanager>
 
 				</el-main>
 			</el-container>
@@ -87,11 +88,15 @@
 	/**
 	 * 管理员管理
 	 */
-	import AdminManager from '@/components/admin/adminmanager'
-	import Adminmanager from "../../components/admin/adminmanager";
+	import Adminmanager from '@/components/admin/adminmanager'
+  /**
+   * 订单管理
+   */
+  import ordermanager from "@/components/order/ordermanager";
 	export default {
 		name: "Index",
 		components: {
+      ordermanager,
 			Bannermanager,
 			Goodtypemanager,
 			Goodmanager,
